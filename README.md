@@ -55,7 +55,7 @@ However, `button -> click`, `paragraph -> click`, and `image -> click` cannot be
 The optional `label` is a third tier of classification that Google uses. So, for example, each type of `button -> click` could have a separate label ("Download button", "Animate button", "Toggle button", etc.)
 
 ###value
-*This is NOT a required field
+*This is NOT a required field*
 The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as:
 - scroll depth tracking (see below)
 - To be continued
