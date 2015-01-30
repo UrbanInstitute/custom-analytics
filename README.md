@@ -33,12 +33,12 @@ In this example, `$(CSS_SELECTOR).custom_analytics('track',{options})` is the ge
 1. Any selector will be valid, whether it selects a single element (usually by id) or multiple elements (usually by class). Selections made on multiple elements will make separate calls to google analytics for each element, using the same options for all calls.
 
 2. Functions can be chained together. This means the following structure would work great:
-	```html
-	$(".download-button")
-		.custom_analytics('track',{OPTIONS FOR CLICK EVENTS})
-		.custom_analytics('track',{OPTIONS FOR MOUSEOVER EVENTS})
-		.custom_analytics('scroll_track',{OPTIONS FOR SCROLL EVENTS (SEE BELOW)})
-	```
+```javascript
+$(".download-button")
+	.custom_analytics('track',{OPTIONS FOR CLICK EVENTS})
+	.custom_analytics('track',{OPTIONS FOR MOUSEOVER EVENTS})
+	.custom_analytics('scroll_track',{OPTIONS FOR SCROLL EVENTS (SEE BELOW)})
+```
 
 ##category
 *This is a required field.*
@@ -84,27 +84,27 @@ Here are examples of each event type:
 
 ##Breakpoint event
 Breakpoint events are always called on the `window` object.
-	```html
-	$(window)
-	.custom_analytics('scrollTrack', {
-		timing: true,
-		interaction: true
-	});
-	```
+```javascript
+$(window)
+.custom_analytics('scrollTrack', {
+	timing: true,
+	interaction: true
+});
+```
 **NOTE: For breakpoint events you should not set `category`, `action`, `label`, or `value` fields for breakpoint events**
 For breakpoint events, the `category` is always set to `scroll breakpoint`, the `action` is set to `scroll`, the `label` is set to the percentage down the page, and the `value` is set to the number of pixels down the page (which may differ across devices). As above, `timing` and `interaction` default to false, but may be set to true.
 
 
 ##Element bound events
-	```html
-	$("#download-button")
-	.custom_analytics('scrollTrack', {
-		label: "object_HTML",
-		value: 1,
-		timing: true,
-		interaction: true
-	});
-	```
+```javascript
+$("#download-button")
+.custom_analytics('scrollTrack', {
+	label: "object_HTML",
+	value: 1,
+	timing: true,
+	interaction: true
+});
+```
 
 For element bound events, the `category` is always set to "scroll past element" and the `action` is always set to "scroll". You may specify:
 
@@ -122,9 +122,9 @@ The same as for non-scrolling events
 
 ##Both breakpoint and element bound events
 If you want to call scroll events on certain objects, but also track the 25%, 50%, 75%, 100% breakpoints, you may do so with a call like:
-	```html
-	$("#download-button")
-	.custom_analytics('scrollTrack', {
-		breakpoints: true
-	});
-	```
+```javascript
+$("#download-button")
+.custom_analytics('scrollTrack', {
+	breakpoints: true
+});
+```
