@@ -1,6 +1,9 @@
 <html>
 <body>
 <button id = "button1" class = "tmp">Button</button>
+<div style = "height:5000px"></div>
+<div id = "scrollpast"></div>
+<div style = "height:5000px"></div>
 <input id = "input1" class = "tmp">Input</input>
 </body>
 <script src = "http://code.jquery.com/jquery-2.1.3.min.js"></script>
@@ -30,6 +33,8 @@
 //         value: 1
 //     }
 // );
-$(window).custom_analytics('scrollTrack',null)
+$(".scrollpast").custom_analytics('scrollTrack',null)
+// $(window).custom_analytics('scrollTrack');
+$(".tmp").custom_analytics('track',{category:"button",action:"click", label:"object_ID",timing:true})
 </script>
 </html>

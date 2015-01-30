@@ -111,7 +111,7 @@ $.scrollDepth = function(options) {
       var now = new Date;
       if (!previous) previous = now;
       var remaining = wait - (now - previous);
-      context = this;
+      context = $(window);
       args = arguments;
       if (remaining <= 0) {
         clearTimeout(timeout);

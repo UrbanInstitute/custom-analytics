@@ -11,12 +11,23 @@
     // **********************************
     // ***** Start: Private Members *****
     var pluginName = 'custom_analytics';
+    var startTime = +new Date;
     
     // List obtained from https://developer.mozilla.org/en-US/docs/Web/Events
     // Both `unimplemented` and `deprecated` events have been removed from this list
     // List up-to-date as of 1/26/2015
     var STANDARD_EVENTS = ["abort","afterprint","animationend","animationiteration","animationstart","audioprocess","beforeprint","beforeunload","beginEvent","blocked","blur","cached","canplay","canplaythrough","change","chargingchange","chargingtimechange","checking","click","close","complete","complete","compositionend","compositionstart","compositionupdate","contextmenu","copy","cut","dblclick","devicelight","devicemotion","deviceorientation","deviceproximity","dischargingtimechange","DOMContentLoaded","downloading","drag","dragend","dragenter","dragleave","dragover","dragstart","drop","durationchange","emptied","ended","ended","endEvent","error","focus","fullscreenchange","fullscreenerror","gamepadconnected","gamepaddisconnected","hashchange","input","invalid","keydown","keypress","keyup","languagechange","levelchange","load","load","loadeddata","loadedmetadata","loadend","loadstart","message","message","message","message","mousedown","mouseenter","mouseleave","mousemove","mouseout","mouseover","mouseup","noupdate","obsolete","offline","online","open","open","orientationchange","pagehide","pageshow","paste","pause","pointerlockchange","pointerlockerror","play","playing","popstate","progress","progress","ratechange","readystatechange","repeatEvent","reset","resize","scroll","seeked","seeking","select","show","stalled","storage","submit","success","suspend","SVGAbort","SVGError","SVGLoad","SVGResize","SVGScroll","SVGUnload","SVGZoom","timeout","timeupdate","touchcancel","touchend","touchenter","touchleave","touchmove","touchstart","transitionend","unload","updateready","upgradeneeded","userproximity","versionchange","visibilitychange","volumechange","waiting","wheel"]
-
+   
+    var cache = [],
+        lastPixelDepth = 0,
+        scrollDefaults = {
+            elements: [],
+            minHeight: 0,
+            breakpoints: false,
+            userTiming: true,
+            pixelDepth: true,
+            nonInteraction: true
+        };
 
     var calculateMarks = function(docHeight) {
         return {
@@ -32,7 +43,7 @@
     // Check each active mark
     $.each(marks, function(key, val) {
           if ( $.inArray(key, cache) === -1 && scrollDistance >= val ) {
-            sendScrollEvent(options,'Percentage', key, scrollDistance, timing);
+            sendScrollEvent(options,"scroll breakpoint", "scroll",key, scrollDistance, timing);
             cache.push(key);
           }
         });
@@ -42,7 +53,7 @@
         $.each(elements, function(index, elem) {
           if ( $.inArray(elem, cache) === -1 && $(elem).length ) {
             if ( scrollDistance >= $(elem).offset().top ) {
-              sendScrollEvent(options,'Elements', elem, scrollDistance, timing);
+              sendScrollEvent(options,"scroll past element","scroll", elem, scrollDistance, timing);
               cache.push(elem);
             }
           }
@@ -54,19 +65,51 @@
         return (Math.floor(scrollDistance/250) * 250).toString();
     };
 
-    var sendScrollEvent = function(options, action, label, scrollDistance, timing) {
-        console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
+    var sendScrollEvent = function(options, category, action, label, scrollDistance, timing) {
+        // console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
+        sendEvent("event",category,"scroll",label,scrollDistance,options.nonInteraction)
 
         if (options.pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
           lastPixelDepth = scrollDistance;
-          console.log('send', 'event', 'Scroll Depth', 'Pixel Depth', rounded(scrollDistance), 1, {'nonInteraction': options.nonInteraction});
+          sendEvent("event","Pixel depth","scroll",rounded(scrollDistance),null)
         }
 
         if (options.userTiming && arguments.length > 3) {
-          console.log('send', 'timing', 'Scroll Depth', action, timing, label);
+          sendEvent("timing","timing","scroll",timing,null)
         }
 
     };
+
+    var sendEvent = function(type,category,action,label,value,interaction){
+        if(typeof interaction === "undefined"){
+        //default behavior is all events are non-interaction events 
+            interaction = false;
+        }
+        else if(interaction === true){
+        }
+        else{
+            throw "Set 'interaction' to true, or leave blank for default of false"
+        }
+
+        if(typeof label !== 'undefined' && label !== null){
+            if (typeof  value !== 'undefined' && value !== null){
+                console.log("send | ",type,"|",category,"|",action,"|",label,"|",value,'|',interaction);
+            }
+            else{
+                console.log("send | ",type,"|",category,"|",action,"|",label,'|',interaction);
+            }
+        }
+        else{
+            if (typeof value !== 'undefined' && value !== null){
+                console.log("send | ",type,"|",category,"|",action,"|",value,'|',interaction);
+            }
+            else{
+                console.log("send | ",type,"|",category,"|",action,'|',interaction);
+            }
+        }
+    }
+
+
 
     /*
     * Throttle function borrowed from:
@@ -89,7 +132,7 @@
           var now = new Date;
           if (!previous) previous = now;
           var remaining = wait - (now - previous);
-          context = this;
+          context = $(window);
           args = arguments;
           if (remaining <= 0) {
             clearTimeout(timeout);
@@ -109,6 +152,7 @@
     // ***** Start: Public Methods *****
     var methods = {
         init : function(options) {
+            // startTime = +new Date;
             //"this" is a jquery object on which this plugin has been invoked.
             return this.each(function(index){
                 var $this = $(this);
@@ -131,6 +175,19 @@
             var action = options.action;
             var label = options.label;
             var value = options.value;
+            var interaction = options.interaction;
+            var timing = options.timing;
+
+            if(typeof timing === "undefined"){
+            //default behavior is all events do not track timing
+                timing = false;
+            }
+            else if(timing === true){
+            }
+            else{
+                throw "Set 'timing' to true, or leave blank for default of false"
+            }
+
             if (typeof category === 'undefined' || typeof action === 'undefined'){
                throw "Call to track() must include value for 'category' and 'action'.";
             }
@@ -138,52 +195,72 @@
                 throw action + " is not a valid name for an event.";
             }
 
-            if (action == "scroll"){
-                throw "For scroll events, please use the 'scrollTrack' method, with no 'action' specified"
-            }
 
-            this.on(action, function(){
-                if(typeof label !== 'undefined'){
-                    if (typeof  value !== 'undefined'){
-                        console.log("category: ",category,"action: ",action,"label: ",label,"value: ",value);
-                    }
-                    else{
-                        console.log("category: ",category,"action: ",action,"label: ",label);
-                    }
+            this.on(action, function(event){
+                if(label == "object_HTML"){
+                    label = event.target.outerHTML;
                 }
-                else{
-                    if (typeof value !== 'undefined'){
-                        console.log("category: ",category,"action: ",action,"value: ",value);
-                    }
-                    else{
-                        console.log("category: ",category,"action: ",action);
-                    }
+                else if(label == "object_ID"){
+                    label = event.target.id;
+                }
+                sendEvent("event",category,action,label,value,interaction);
+                if(timing){
+                    t = +new Date - startTime;
+                    sendEvent("timing",category,action,label,t,interaction);
                 }
             });
         },
-        scrollTrack: function(options){
-            var cache = [],
-                lastPixelDepth = 0,
-                defaults = {
-                    elements: [],
-                    minHeight: 0,
-                    percentage: false,
-                    userTiming: true,
-                    pixelDepth: true,
-                    nonInteraction: true
-                };
+        scrollTrack: function(options){            
             if(! $.isWindow(this[0])){
-                $.extend({}, defaults, {elements: this});
+                var extended = $.extend({}, scrollDefaults, {elements: this});
             }
             else{
-                $.extend({}, defaults, {percentage: true});
+                var extended = $.extend({}, scrollDefaults, {breakpoints: true});
             }
 
-            var startTime = +new Date;
-            options = $.extend({}, defaults, options);
+            options = $.extend({}, extended, options);
+            
+            var breakpoints = options.breakpoints;
+            var pixelDepth = options.pixelDepth;
+            var label = options.label;
+            var value = options.value;
+            var interaction = options.interaction;
+            var timing = options.timing;
 
 
+            var $window = $(window);
 
+            $window.on('scroll', throttle(function() {
+            /*
+             * We calculate document and window height on each scroll event to
+             * account for dynamic DOM changes.
+             */
+                var docHeight = $(document).height(),
+                  winHeight = window.innerHeight ? window.innerHeight : $window.height(),
+                  scrollDistance = $window.scrollTop() + winHeight,
+
+                  // Recalculate breakpoints marks
+                  marks = calculateMarks(docHeight),
+
+                  // Timing
+                  timing = +new Date - startTime;
+
+                // If all marks already hit, unbind scroll event
+                if (cache.length >= 4 + options.elements.length) {
+                  $window.off('scroll');
+                  return;
+                }
+
+                // Check specified DOM elements
+                if (options.elements) {
+                  checkElements(options,options.elements, scrollDistance, timing);
+                }
+
+                // Check standard marks
+                if (breakpoints) {
+                  checkMarks(options, marks, scrollDistance, timing);
+                }
+          }, 500));
         }
     };
     // ***** Fin: Public Methods *****

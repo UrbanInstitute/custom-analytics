@@ -4,45 +4,46 @@ Custom events for google analytics
 ##Installing this script
 At the bottom of a page that includes google analytics (currently only supported for `analytics.js`), embed the javascript with
 ```html
-<script src = "path/to/urban-analytics.js"></script>
+<script src = "path/to/custom-analytics.min.js"></script>
 ```
 **below** the `analytics.js` embed script.
 
 ##Tracking Events
 
-To track custom events, you will be calling the `trackEvents` function inside a `<script>` tag, underneath the link to `urban-analytics.js`. The function takes an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of [javascript objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects), where each object is a list of settings to send to Google. Here's an example of what the `trackEvents` function call might look like. Below, there are descriptions of each value in the passed object(s).
+To track custom events, you will be calling the either the `scroll_track` method (for scrolling events) or the `track` method (for all other events) of the `custom_analytics` function inside a `<script>` tag, underneath the link to `urban-analytics.js`. The function takes a [javascript objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects) that is a list of settings to send to Google. Here's an example of what the `track` method call might look like. Below, there are descriptions of each value in the passed object.
 
 ```html
 <script type="text/javascript">
-	trackEvents(
-		[
-			{
-				elements: $(".download-button"),
-				category: "button",
-				action: "click",
-				label: "Download button",
-				value: 1
-			},
-			{
-				elements: $("#unique-paragraph"),
-				category: "article paragraph",
-				action: "copy"
-			}
-		]
-	);
+$(".download-button").custom_analytics('track',{
+	category: "button",
+	action: "click",
+	label: "object_ID",
+	value: 1,
+	timing: true,
+	interaction: true
+});
+
 </script>
 ```
+Let's break that up line by line.
 
-###elements
-*This is a required field.*
-The `elements` key accepts either a single DOM object, or multiple objects in an array. The best way to pass these objects in is through [jQuery selection](http://learn.jquery.com/using-jquery-core/selecting-elements/). Note that urban-analytics.js requires jQuery, and it is included in all Urban sites, so that dependency shouldn't be an issue.
+##elements
+In this example, `$(CSS_SELECTOR).custom_analytics('track',{options})` is the general form of function calls, for this plugin. Since this code plugs in to jQuery, jQuery is required (it's standard on all Urban pages), and selection should be made as above, using jQuery selectors. This structure means that:
+1. Any selector will be valid, whether it selects a single element (usually by id) or multiple elements (usually by class). Selections made on multiple elements will make separate calls to google analytics for each element, using the same options for all calls.
 
+2. Functions can be chained together. This means the following structure would work great:
+	```javascript
+	$(".download-button")
+		.custom_analytics('track',{OPTIONS FOR CLICK EVENTS})
+		.custom_analytics('track',{OPTIONS FOR MOUSEOVER EVENTS})
+		.custom_analytics('scroll_track',{OPTIONS FOR SCROLL EVENTS (SEE BELOW)})
+	```
 
-###category
+##category
 *This is a required field.*
 The `category` key is used by Google Analytics to group similar events together. It can be any String value you like. As a best practice, I suggest element types are used as categories (button, video, paragraph, window, text box, etc.)
 
-###action
+##action
 *This is a required field*
 The next tier of classification Google uses is `action`s. The heirarchical structure means, for example:
 All `button -> click`, `button -> focus`, or `button -> hover` events would be aggregated under `button` and could be further drilled down to examine the individual actions.
@@ -50,15 +51,18 @@ However, `button -> click`, `paragraph -> click`, and `image -> click` cannot be
 
 *IMPORTANT NOTE* The `action` field accepts a String, but it must be the name of a [standard web event](https://developer.mozilla.org/en-US/docs/Web/Events). Examples include `click`, `dblclick`, `mouseenter`, etc. See the [MDN reference](https://developer.mozilla.org/en-US/docs/Web/Events) for a link of all event names.
 
-###label
+##label
 *This is NOT a required field*
 The optional `label` is a third tier of classification that Google uses. So, for example, each type of `button -> click` could have a separate label ("Download button", "Animate button", "Toggle button", etc.)
 
-###value
+####Special labels:
+There are two special values for the `label` parameter.
+- `label: "object_ID"` will use the object's css id as the label to send to google analytics.
+- `label: "object_HTML"` will send the entire html of the object as a label, e.g. `<button id = "cool_button" class = "buttons">Button</button>`
+
+##value
 *This is NOT a required field*
-The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as:
-- scroll depth tracking (see below)
-- To be continued
+The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as scroll depth tracking (see below), or any other numeric value.
 
 ##A note on scroll events
 
