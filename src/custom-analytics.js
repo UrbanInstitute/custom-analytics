@@ -25,7 +25,6 @@
             minHeight: 0,
             breakpoints: false,
             timing: false,
-            pixelDepth: false,
             interaction: false
         };
 
@@ -69,7 +68,6 @@
             }
 
             if ( scrollDistance >= $(elem).offset().top ) {
-              // sendScrollEvent(options,"scroll past element","scroll", elem, scrollDistance, timing);
               sendScrollEvent("scroll past element","scroll",lab,val,time,config)
               cache.push(elem);
             }
@@ -85,18 +83,10 @@
     // var sendScrollEvent = function(options, category, action, label, scrollDistance, timing) {
     var sendScrollEvent = function(category,action,label,value,time,config){
         var interaction = config.interaction;
-        var pixelDepth = config.pixelDepth;
         var timing = config.timing;
-
-        console.log("Fooo")
 
         // console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
         sendEvent("event",category,action,label,value,interaction);
-
-        if (pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
-          lastPixelDepth = scrollDistance;
-          sendEvent("event",category+ " pixel depth",action,label,rounded(scrollDistance),interaction)
-        }
 
         if (timing && arguments.length > 3) {
           sendEvent("timing",category+" timing",action,label,time,interaction)
@@ -248,13 +238,12 @@
             options = $.extend({}, extended, options);
 
             var breakpoints = options.breakpoints;
-            var pixelDepth = options.pixelDepth;
             var label = options.label;
             var value = options.value;
             var interaction = options.interaction;
             var timing = options.timing;
 
-            var config = {interaction: interaction, pixelDepth: pixelDepth, timing: timing}
+            var config = {interaction: interaction, timing: timing}
 
             var $window = $(window);
 

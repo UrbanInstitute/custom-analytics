@@ -8,13 +8,14 @@ At the bottom of a page that includes google analytics (currently only supported
 ```
 **below** the `analytics.js` embed script.
 
-##Tracking Events
+#Tracking non-scroll events
 
 To track custom events, you will be calling the either the `scroll_track` method (for scrolling events) or the `track` method (for all other events) of the `custom_analytics` function inside a `<script>` tag, underneath the link to `urban-analytics.js`. The function takes a [javascript objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects) that is a list of settings to send to Google. Here's an example of what the `track` method call might look like. Below, there are descriptions of each value in the passed object.
 
 ```html
 <script type="text/javascript">
-$(".download-button").custom_analytics('track',{
+$(".download-button")
+.custom_analytics('track',{
 	category: "button",
 	action: "click",
 	label: "object_ID",
@@ -32,7 +33,7 @@ In this example, `$(CSS_SELECTOR).custom_analytics('track',{options})` is the ge
 1. Any selector will be valid, whether it selects a single element (usually by id) or multiple elements (usually by class). Selections made on multiple elements will make separate calls to google analytics for each element, using the same options for all calls.
 
 2. Functions can be chained together. This means the following structure would work great:
-	```javascript
+	```html
 	$(".download-button")
 		.custom_analytics('track',{OPTIONS FOR CLICK EVENTS})
 		.custom_analytics('track',{OPTIONS FOR MOUSEOVER EVENTS})
@@ -53,7 +54,7 @@ However, `button -> click`, `paragraph -> click`, and `image -> click` cannot be
 
 ##label
 *This is NOT a required field*
-The optional `label` is a third tier of classification that Google uses. So, for example, each type of `button -> click` could have a separate label ("Download button", "Animate button", "Toggle button", etc.)
+The optional `label` is a third tier of classification that Google uses. So, for example, each type of `button -> click` could have a separate label ("Download button", "Animate button", "Toggle button", etc.) If you do not specify a label, none will be sent.
 
 ####Special labels:
 There are two special values for the `label` parameter.
@@ -62,17 +63,68 @@ There are two special values for the `label` parameter.
 
 ##value
 *This is NOT a required field*
-The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as scroll depth tracking (see below), or any other numeric value.
+The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as scroll depth tracking (see below), or any other numeric value. If you do not specify a value, none will be sent.
 
 ##timing
 *This is NOT a required field*
 Google analytics can also send "timing" events, which are separate in the analytics dashboard from all other events. If you enable timing by setting it to `true`, then the given event will be paired with a separate timing event, storing how long the event happened after the page loaded (in milliseconds). *If you do not specifically set this value to `true`, it defaults to `false`.*
 
-##timing
+##interaction
 *This is NOT a required field*
 By default, all events are set as non-interaction events, meaning they will not affect the [bounce rate](https://support.google.com/analytics/answer/1009409?hl=en). It may make sense to set certain events as interaction events (e.g. button clicks far down on the page), but I'd recomend leaving the default value of `false` for the interaction field during initial implementation. Setting many events as interaction events will make cross-project analytics difficult, as well as comparison of projects over time. *If you do not specifically set this value to `true`, it defaults to `false`.*
 
 
-##A note on scroll events
+#Tracking scroll events
 
-To be continued
+There are two types of scroll events:
+- **breakpoint** events fire when the user has scrolled 25%, 50%, 75%, and 100% of the way down the page
+- **element bound** events fire when a user has scrolled past a certain element.
+
+Here are examples of each event type:
+
+##Breakpoint event
+Breakpoint events are always called on the `window` object.
+	```html
+	$(window)
+	.custom_analytics('scrollTrack', {
+		timing: true,
+		interaction: true
+	});
+	```
+**NOTE: For breakpoint events you should not set `category`, `action`, `label`, or `value` fields for breakpoint events**
+For breakpoint events, the `category` is always set to `scroll breakpoint`, the `action` is set to `scroll`, the `label` is set to the percentage down the page, and the `value` is set to the number of pixels down the page (which may differ across devices). As above, `timing` and `interaction` default to false, but may be set to true.
+
+
+##Element bound events
+	```html
+	$("#download-button")
+	.custom_analytics('scrollTrack', {
+		label: "object_HTML",
+		value: 1,
+		timing: true,
+		interaction: true
+	});
+	```
+
+For element bound events, the `category` is always set to "scroll past element" and the `action` is always set to "scroll". You may specify:
+
+####label
+The same as for non-scrolling events, including the special "object_ID" and "object_HTML" lables.
+
+####value
+The same as for non-scrolling events. **Note that if no value is specified, a default value will be sent to google analytics, equal to the distance in pixels from the top of the page to the top of the element**
+
+####timing
+The same as for non-scrolling events
+
+####interaction
+The same as for non-scrolling events
+
+##Both breakpoint and element bound events
+If you want to call scroll events on certain objects, but also track the 25%, 50%, 75%, 100% breakpoints, you may do so with a call like:
+	```html
+	$("#download-button")
+	.custom_analytics('scrollTrack', {
+		breakpoints: true
+	});
+	```
