@@ -85,7 +85,6 @@
         var interaction = config.interaction;
         var timing = config.timing;
 
-        // console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
         sendEvent("event",category,action,label,value,interaction);
 
         if (timing && arguments.length > 3) {
@@ -108,18 +107,18 @@
 
         if(typeof label !== 'undefined' && label !== null){
             if (typeof  value !== 'undefined' && value !== null){
-                console.log("send | ",type,"|",category,"|",action,"|",label,"|",value,'|',interaction);
+                ga("send",type,category,action,label,value,{nonInteraction:!interaction});
             }
             else{
-                console.log("send | ",type,"|",category,"|",action,"|",label,'|',interaction);
+                ga("send",type,category,action,label,{nonInteraction:!interaction});
             }
         }
         else{
             if (typeof value !== 'undefined' && value !== null){
-                console.log("send | ",type,"|",category,"|",action,"|",value,'|',interaction);
+                ga("send",type,category,action,"",value,{nonInteraction:!interaction});
             }
             else{
-                console.log("send | ",type,"|",category,"|",action,'|',interaction);
+                ga("send",type,category,action,{nonInteraction:!interaction});
             }
         }
     }
