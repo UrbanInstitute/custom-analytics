@@ -64,6 +64,15 @@ There are two special values for the `label` parameter.
 *This is NOT a required field*
 The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as scroll depth tracking (see below), or any other numeric value.
 
+##timing
+*This is NOT a required field*
+Google analytics can also send "timing" events, which are separate in the analytics dashboard from all other events. If you enable timing by setting it to `true`, then the given event will be paired with a separate timing event, storing how long the event happened after the page loaded (in milliseconds). *If you do not specifically set this value to `true`, it defaults to `false`.*
+
+##timing
+*This is NOT a required field*
+By default, all events are set as non-interaction events, meaning they will not affect the [bounce rate](https://support.google.com/analytics/answer/1009409?hl=en). It may make sense to set certain events as interaction events (e.g. button clicks far down on the page), but I'd recomend leaving the default value of `false` for the interaction field during initial implementation. Setting many events as interaction events will make cross-project analytics difficult, as well as comparison of projects over time. *If you do not specifically set this value to `true`, it defaults to `false`.*
+
+
 ##A note on scroll events
 
 To be continued

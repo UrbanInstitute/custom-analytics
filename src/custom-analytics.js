@@ -24,9 +24,9 @@
             elements: [],
             minHeight: 0,
             breakpoints: false,
-            userTiming: true,
-            pixelDepth: true,
-            nonInteraction: true
+            timing: false,
+            pixelDepth: false,
+            interaction: false
         };
 
     var calculateMarks = function(docHeight) {
@@ -39,21 +39,38 @@
         };
     };
 
-    var checkMarks = function(options, marks, scrollDistance, timing) {
+    var checkMarks = function(marks, scrollDistance, time, config) {
     // Check each active mark
     $.each(marks, function(key, val) {
           if ( $.inArray(key, cache) === -1 && scrollDistance >= val ) {
-            sendScrollEvent(options,"scroll breakpoint", "scroll",key, scrollDistance, timing);
+            // sendScrollEvent("event","scroll breakpoint","scroll",key,interaction,pixelDepth);
+            sendScrollEvent("scroll breakpoint","scroll", key, scrollDistance, time, config);
             cache.push(key);
           }
         });
     };
 
-    var checkElements = function(options,elements, scrollDistance, timing) {
+    var checkElements = function(elements, scrollDistance, label, value, time, config) {
         $.each(elements, function(index, elem) {
           if ( $.inArray(elem, cache) === -1 && $(elem).length ) {
+            var lab, val;
+            if(label === "object_HTML"){
+                lab = elem;
+            }
+            else if(label === "object_ID"){
+                val = elem.id;
+            }
+
+            if (typeof value !== "undefined"){
+                val = value;
+            }
+            else{
+                val = scrollDistance;
+            }
+
             if ( scrollDistance >= $(elem).offset().top ) {
-              sendScrollEvent(options,"scroll past element","scroll", elem, scrollDistance, timing);
+              // sendScrollEvent(options,"scroll past element","scroll", elem, scrollDistance, timing);
+              sendScrollEvent("scroll past element","scroll",lab,val,time,config)
               cache.push(elem);
             }
           }
@@ -65,22 +82,30 @@
         return (Math.floor(scrollDistance/250) * 250).toString();
     };
 
-    var sendScrollEvent = function(options, category, action, label, scrollDistance, timing) {
-        // console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
-        sendEvent("event",category,"scroll",label,scrollDistance,options.nonInteraction)
+    // var sendScrollEvent = function(options, category, action, label, scrollDistance, timing) {
+    var sendScrollEvent = function(category,action,label,value,time,config){
+        var interaction = config.interaction;
+        var pixelDepth = config.pixelDepth;
+        var timing = config.timing;
 
-        if (options.pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
+        console.log("Fooo")
+
+        // console.log('send', 'event', 'Scroll Depth', action, label, 1, {'nonInteraction': options.nonInteraction});
+        sendEvent("event",category,action,label,value,interaction);
+
+        if (pixelDepth && arguments.length > 2 && scrollDistance > lastPixelDepth) {
           lastPixelDepth = scrollDistance;
-          sendEvent("event","Pixel depth","scroll",rounded(scrollDistance),null)
+          sendEvent("event",category+ " pixel depth",action,label,rounded(scrollDistance),interaction)
         }
 
-        if (options.userTiming && arguments.length > 3) {
-          sendEvent("timing","timing","scroll",timing,null)
+        if (timing && arguments.length > 3) {
+          sendEvent("timing",category+" timing",action,label,time,interaction)
         }
 
     };
 
-    var sendEvent = function(type,category,action,label,value,interaction){
+    var sendEvent = function(type,category,action,label,value,config){
+        var interaction = config.interaction
         if(typeof interaction === "undefined"){
         //default behavior is all events are non-interaction events 
             interaction = false;
@@ -188,6 +213,8 @@
                 throw "Set 'timing' to true, or leave blank for default of false"
             }
 
+            var config = {interaction: interaction, timing: timing}
+
             if (typeof category === 'undefined' || typeof action === 'undefined'){
                throw "Call to track() must include value for 'category' and 'action'.";
             }
@@ -203,10 +230,10 @@
                 else if(label == "object_ID"){
                     label = event.target.id;
                 }
-                sendEvent("event",category,action,label,value,interaction);
+                sendEvent("event",category,action,label,value,config);
                 if(timing){
                     t = +new Date - startTime;
-                    sendEvent("timing",category,action,label,t,interaction);
+                    sendEvent("timing",category,action,label,t,config);
                 }
             });
         },
@@ -219,7 +246,7 @@
             }
 
             options = $.extend({}, extended, options);
-            
+
             var breakpoints = options.breakpoints;
             var pixelDepth = options.pixelDepth;
             var label = options.label;
@@ -227,6 +254,7 @@
             var interaction = options.interaction;
             var timing = options.timing;
 
+            var config = {interaction: interaction, pixelDepth: pixelDepth, timing: timing}
 
             var $window = $(window);
 
@@ -243,7 +271,7 @@
                   marks = calculateMarks(docHeight),
 
                   // Timing
-                  timing = +new Date - startTime;
+                  t = +new Date - startTime;
 
                 // If all marks already hit, unbind scroll event
                 if (cache.length >= 4 + options.elements.length) {
@@ -253,13 +281,14 @@
 
                 // Check specified DOM elements
                 if (options.elements) {
-                  checkElements(options,options.elements, scrollDistance, timing);
+                  checkElements(options.elements, scrollDistance, label, value, t, config);
                 }
 
                 // Check standard marks
                 if (breakpoints) {
-                  checkMarks(options, marks, scrollDistance, timing);
+                  checkMarks(marks, scrollDistance, t, config);
                 }
+
           }, 500));
         }
     };
