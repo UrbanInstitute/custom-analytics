@@ -12,12 +12,12 @@
     // ***** Start: Private Members *****
     var pluginName = 'custom_analytics';
     var startTime = +new Date;
-    
+
     // List obtained from https://developer.mozilla.org/en-US/docs/Web/Events
     // Both `unimplemented` and `deprecated` events have been removed from this list
     // List up-to-date as of 1/26/2015
     var STANDARD_EVENTS = ["abort","afterprint","animationend","animationiteration","animationstart","audioprocess","beforeprint","beforeunload","beginEvent","blocked","blur","cached","canplay","canplaythrough","change","chargingchange","chargingtimechange","checking","click","close","complete","complete","compositionend","compositionstart","compositionupdate","contextmenu","copy","cut","dblclick","devicelight","devicemotion","deviceorientation","deviceproximity","dischargingtimechange","DOMContentLoaded","downloading","drag","dragend","dragenter","dragleave","dragover","dragstart","drop","durationchange","emptied","ended","ended","endEvent","error","focus","fullscreenchange","fullscreenerror","gamepadconnected","gamepaddisconnected","hashchange","input","invalid","keydown","keypress","keyup","languagechange","levelchange","load","load","loadeddata","loadedmetadata","loadend","loadstart","message","message","message","message","mousedown","mouseenter","mouseleave","mousemove","mouseout","mouseover","mouseup","noupdate","obsolete","offline","online","open","open","orientationchange","pagehide","pageshow","paste","pause","pointerlockchange","pointerlockerror","play","playing","popstate","progress","progress","ratechange","readystatechange","repeatEvent","reset","resize","scroll","seeked","seeking","select","show","stalled","storage","submit","success","suspend","SVGAbort","SVGError","SVGLoad","SVGResize","SVGScroll","SVGUnload","SVGZoom","timeout","timeupdate","touchcancel","touchend","touchenter","touchleave","touchmove","touchstart","transitionend","unload","updateready","upgradeneeded","userproximity","versionchange","visibilitychange","volumechange","waiting","wheel"]
-   
+
     var cache = [],
         lastPixelDepth = 0,
         scrollDefaults = {
@@ -53,11 +53,15 @@
         $.each(elements, function(index, elem) {
           if ( $.inArray(elem, cache) === -1 && $(elem).length ) {
             var lab, val;
-            if(label === "object_HTML"){
+
+            if (label instanceof Function) {
+                lab = label(elem);
+            }
+            else if(label === "object_HTML"){
                 lab = elem;
             }
             else if(label === "object_ID"){
-                val = elem.id;
+                lab = elem.id;
             }
 
             if (typeof value !== "undefined"){
@@ -94,9 +98,10 @@
     };
 
     var sendEvent = function(type,category,action,label,value,config){
-        var interaction = config.interaction
+        var interaction = config.interaction;
+
         if(typeof interaction === "undefined"){
-        //default behavior is all events are non-interaction events 
+        //default behavior is all events are non-interaction events
             interaction = false;
         }
         else if(interaction === true){
@@ -211,9 +216,12 @@
                 throw action + " is not a valid name for an event.";
             }
 
-
+            var element = this;
             this.on(action, function(event){
-                if(label == "object_HTML"){
+                if (label instanceof Function) {
+                    label = label(element);
+                }
+                else if(label == "object_HTML"){
                     label = event.target.outerHTML;
                 }
                 else if(label == "object_ID"){
@@ -226,7 +234,7 @@
                 }
             });
         },
-        scrollTrack: function(options){            
+        scrollTrack: function(options){
             if(! $.isWindow(this[0])){
                 var extended = $.extend({}, scrollDefaults, {elements: this});
             }

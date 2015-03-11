@@ -1,14 +1,17 @@
 <html>
+
 <body>
-<button id = "button1" class = "tmp">Button</button>
-<div style = "height:5000px"></div>
-<div id = "scrollpast"></div>
-<div style = "height:5000px"></div>
-<input id = "input1" class = "tmp">Input</input>
+  <button id="button1" class="tmp" data-datastuff="12345">Button</button>
+  <div style="height:5000px"></div>
+  <div id="scrollpast"></div>
+  <div style="height:5000px"></div>
+  <input id="input1" class="tmp">Input</input>
 </body>
-<script src = "http://code.jquery.com/jquery-2.1.3.min.js"></script>
-<script src = "../src/custom-analytics.js"></script>
+<script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="../src/custom-analytics.js"></script>
 <script type="text/javascript">
+    // fake ga object
+    var ga = console.log.bind(console);
     // trackEvents(
     //     [
     //         {
@@ -25,16 +28,34 @@
     //         }
     //     ]
     // );
-// $(".tmp").custom_analytics('track',
-// 	{
-//         category: "button",
-//         action: "click",
-//         label: "Download button",
-//         value: 1
-//     }
-// );
-$("#scrollpast").custom_analytics('scrollTrack',{timing:true, label:"object_HTML", value:1, breakpoints:true, timing:true})
-// $(window).custom_analytics('scrollTrack',null);
-$(".tmp").custom_analytics('track',{category:"button",action:"click", label:"object_ID",timing:true})
+    // $(".tmp").custom_analytics('track',
+    //  {
+    //         category: "button",
+    //         action: "click",
+    //         label: "Download button",
+    //         value: 1
+    //     }
+    // );
+    $("#scrollpast").custom_analytics('scrollTrack', {
+        timing: true,
+        label: "object_HTML",
+        value: 1,
+        breakpoints: true,
+        timing: true
+      });
+    // $(window).custom_analytics('scrollTrack',null);
+    $(".tmp").custom_analytics('track', {
+      category: "button",
+      action: "click",
+      label: "object_ID",
+      timing: true
+    });
+    $("button").custom_analytics('track', {
+      category: "button",
+      action: "click",
+      label: function(e) { return $(e).data('datastuff')} ,
+      timing: true
+    });
 </script>
+
 </html>
