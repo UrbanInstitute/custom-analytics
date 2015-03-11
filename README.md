@@ -61,6 +61,15 @@ There are two special values for the `label` parameter.
 - `label: "object_ID"` will use the object's css id as the label to send to google analytics.
 - `label: "object_HTML"` will send the entire html of the object as a label, e.g. `<button id = "cool_button" class = "buttons">Button</button>`
 
+####label function
+The label attribute may also be a function of the form...
+```javascript
+function (el) {
+	return ...
+}
+```
+which takes in the selected DOM node and returns a string
+
 ##value
 *This is NOT a required field*
 The optional `value` can be used to attach an *integer* value to an event. Google tracks averages of these values, so they could be used for functions such as scroll depth tracking (see below), or any other numeric value. If you do not specify a value, none will be sent.
